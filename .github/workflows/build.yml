@@ -6,8 +6,8 @@ on:
   push:
     branches:
       - dev
-      - feat/*
-      - chore/*
+      - 'feat/**'
+      - 'chore/**'
     tags:
       - 'v*'
 
