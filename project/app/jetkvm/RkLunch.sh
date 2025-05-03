@@ -35,7 +35,7 @@ network_init()
 {
 	ifup lo
 	ifconfig eth0 down
-	set_up_mac_address | tee/dev/kmsg
+	set_up_mac_address | tee /dev/kmsg
 
 	# ethaddr1=`ifconfig -a | grep "eth.*HWaddr" | awk '{print $5}'`
 
