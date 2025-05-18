@@ -455,6 +455,7 @@ rootfs_prepare: prepare
 	tar xjf $(TOOLCHAIN_DIR)/$(TOOLCHAIN_RUNTIME_LIB)/$(TOOLCHAIN_RUNTIME_LIB_C) -C $(SYSDRV_DIR_OUT_ROOTFS)
 	wget -O $(SYSDRV_DIR_OUT_ROOTFS)/usr/sbin/entware-install.sh https://bin.entware.net/armv7sf-k3.2/installer/generic.sh
 	chmod +x $(SYSDRV_DIR_OUT_ROOTFS)/usr/sbin/entware-install.sh
+	pushd $(SYSDRV_DIR_OUT_ROOTFS)/lib/ ; mv -fv \
 		libasan_preinit.o \
 		libasan.so* \
 		libtsan.so* \
