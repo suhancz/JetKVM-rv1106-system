@@ -32,7 +32,7 @@ jobs:
           export BUILD_VERSION_SOURCE="file"
           # check if current branch is main, if not then append branch name and commit 
           # check if current tag starts with v, if yes, override BUILD_VERSION with the tag
-          if [[ "$GITHUB_REF" == refs/tags/* && "$GITHUB_REF" =~ ^v.* ]]; then
+          if [[ "$GITHUB_REF" == refs/tags/* && "$GITHUB_REF_NAME" =~ ^v.* ]]; then
             export BUILD_VERSION=$(echo $GITHUB_REF | sed 's/refs\/tags\///' | sed 's/^v//')
             export BUILD_VERSION_SOURCE="release-tag"
           elif [[ "$GITHUB_REF" == refs/tags/* ]]; then
