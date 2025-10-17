@@ -44,6 +44,7 @@ jobs:
 
           echo "BUILD_VERSION=$BUILD_VERSION" >> $GITHUB_ENV
           echo "BUILD_VERSION_SOURCE=$BUILD_VERSION_SOURCE" >> $GITHUB_ENV
+          echo "$BUILD_VERSION" > VERSION
       - name: Build
         run: |
           echo "Version: $BUILD_VERSION (from $BUILD_VERSION_SOURCE)"
