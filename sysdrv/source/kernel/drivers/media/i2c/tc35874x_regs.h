@@ -606,6 +606,7 @@
 
 #define SDO_MODE1                             0x8652
 #define MASK_SDO_BIT_LENG                     0x70
+#define MASK_SDO_BIT_LENG_24BIT               0x30
 #define MASK_SDO_FMT                          0x03
 #define MASK_SDO_FMT_RIGHT                    0x00
 #define MASK_SDO_FMT_LEFT                     0x01
