@@ -1096,19 +1096,18 @@ static void tc35874x_set_hdmi_audio(struct v4l2_subdev *sd)
 
 	/* Default settings from REF_02, sheet "Source HDMI" */
 	i2c_wr8(sd, FORCE_MUTE, 0x00);
-	i2c_wr8(sd, AUTO_CMD0, MASK_AUTO_MUTE7 | MASK_AUTO_MUTE6 |
-			MASK_AUTO_MUTE5 | MASK_AUTO_MUTE4 |
-			MASK_AUTO_MUTE1 | MASK_AUTO_MUTE0);
-	i2c_wr8(sd, AUTO_CMD1, MASK_AUTO_MUTE9);
+	/* Disable automatic audio muting to prevent ACR PLL unlock during silence */
+	i2c_wr8(sd, AUTO_CMD0, 0x00);
+	i2c_wr8(sd, AUTO_CMD1, 0x00);
 	i2c_wr8(sd, AUTO_CMD2, MASK_AUTO_PLAY3 | MASK_AUTO_PLAY2);
-	i2c_wr8(sd, BUFINIT_START, SET_BUFINIT_START_MS(500));
-	i2c_wr8(sd, FS_MUTE, 0x00);
+	i2c_wr8(sd, BUFINIT_START, SET_BUFINIT_START_MS(200));
+	i2c_wr8(sd, FS_MUTE, MASK_FS_NO_MUTE);
 	i2c_wr8(sd, FS_IMODE, MASK_NLPCM_SMODE | MASK_FS_SMODE);
 	i2c_wr8(sd, ACR_MODE, MASK_CTS_MODE);
-	i2c_wr8(sd, ACR_MDF0, MASK_ACR_L2MDF_1976_PPM | MASK_ACR_L1MDF_976_PPM);
-	i2c_wr8(sd, ACR_MDF1, MASK_ACR_L3MDF_3906_PPM);
-	i2c_wr8(sd, SDO_MODE1, MASK_SDO_FMT_I2S);
-	i2c_wr8(sd, DIV_MODE, SET_DIV_DLY_MS(100));
+	i2c_wr8(sd, ACR_MDF0, MASK_ACR_L2MDF_122_PPM | MASK_ACR_L1MDF_122_PPM);
+	i2c_wr8(sd, ACR_MDF1, MASK_ACR_L3MDF_244_PPM);
+	i2c_wr8(sd, SDO_MODE1, MASK_SDO_BIT_LENG_24BIT | MASK_SDO_FMT_I2S);
+	i2c_wr8(sd, DIV_MODE, SET_DIV_DLY_MS(600));
 
 	mutex_lock(&state->confctl_mutex);
 	i2c_wr16_and_or(sd, CONFCTL, 0xffff, MASK_AUDCHNUM_2 |
@@ -2222,8 +2221,8 @@ static int tc35874x_get_custom_ctrl(struct v4l2_ctrl *ctrl)
 	struct v4l2_subdev *sd = &state->sd;
 
 	if (ctrl->id == TC35874X_CID_AUDIO_SAMPLING_RATE) {
-		ret = get_audio_sampling_rate(sd);
-		*ctrl->p_new.p_s32 = ret;
+		*ctrl->p_new.p_s32 = get_audio_sampling_rate(sd);
+		return 0;  // Success
 	}
 
 	return ret;
@@ -2242,7 +2241,7 @@ static const struct v4l2_ctrl_config tc35874x_ctrl_audio_sampling_rate = {
 	.max = 768000,
 	.step = 1,
 	.def = 0,
-	.flags = V4L2_CTRL_FLAG_READ_ONLY,
+	.flags = V4L2_CTRL_FLAG_READ_ONLY | V4L2_CTRL_FLAG_VOLATILE,
 };
 
 static const struct v4l2_ctrl_config tc35874x_ctrl_audio_present = {
