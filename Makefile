@@ -48,8 +48,8 @@ check_device:
 
 check_remote:
 	@echo "Checking remote host connectivity ($(JETKVM_REMOTE_HOST))..."
-	@ping -c 1 -W 5 $(JETKVM_REMOTE_HOST) > /dev/null 2>&1 || { echo "Error: Cannot reach remote host at $(JETKVM_REMOTE_HOST)"; exit 1; }
-	@ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o ConnectTimeout=10 root@$(JETKVM_REMOTE_HOST) "echo ok" > /dev/null 2>&1 || { echo "Error: SSH failed to root@$(JETKVM_REMOTE_HOST)"; exit 1; }
+	@ping -c 1 -W 5 $(shell echo $(JETKVM_REMOTE_HOST) | sed 's/.*@//') > /dev/null 2>&1 || { echo "Error: Cannot reach remote host at $(JETKVM_REMOTE_HOST)"; exit 1; }
+	@ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o ConnectTimeout=10 $(JETKVM_REMOTE_HOST) "echo ok" > /dev/null 2>&1 || { echo "Error: SSH failed to $(JETKVM_REMOTE_HOST)"; exit 1; }
 	@echo "OK: Remote host reachable"
 
 flash:
