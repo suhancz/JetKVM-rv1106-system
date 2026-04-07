@@ -54,14 +54,20 @@ check_remote:
 
 flash:
 	$(MAKE) check_device
+ifndef SKIP_BUILD
 	$(MAKE) build
+endif
 	./scripts/flash_system.sh -r $(DEVICE_IP)
 
 test:
 	$(MAKE) check_device
 	$(MAKE) check_remote
+ifndef SKIP_BUILD
 	$(MAKE) flash
-	./scripts/run_e2e_tests.sh -r $(DEVICE_IP) --remote-host $(JETKVM_REMOTE_HOST)
+else
+	$(MAKE) flash SKIP_BUILD=1
+endif
+	./scripts/run_e2e_tests.sh -r $(DEVICE_IP) --remote-host $(JETKVM_REMOTE_HOST) $(if $(KVM_DIR),--kvm-dir $(KVM_DIR))
 
 # -----------------------------------------------------------------------------
 # Dev Release - Prerelease for testing
