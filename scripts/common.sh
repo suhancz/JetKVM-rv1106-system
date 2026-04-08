@@ -111,9 +111,9 @@ wait_for_device() {
         exit 1
     fi
 
-    # Wait for web interface (up to 60 seconds)
+    # Wait for web interface (up to 180 seconds)
     msg_info "  Waiting for web interface..."
-    max_attempts=30
+    max_attempts=90
     attempt=1
     while [ $attempt -le $max_attempts ]; do
         if curl -s --max-time 5 "http://${DEVICE_IP}" > /dev/null 2>&1; then

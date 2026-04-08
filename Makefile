@@ -20,19 +20,33 @@ R2_PATH := r2://jetkvm-update/system
 # Git checks
 # -----------------------------------------------------------------------------
 git_check_dev:
-	@if [ "$$(git rev-parse --abbrev-ref HEAD)" != "dev" ]; then \
-		echo "Error: Must be on 'dev' branch"; exit 1; \
-	fi
 	@if [ -n "$$(git status --porcelain)" ]; then \
 		echo "Error: Working tree is dirty. Commit or stash changes."; exit 1; \
-	fi
-	@git fetch origin dev
-	@if [ "$$(git rev-parse HEAD)" != "$$(git rev-parse origin/dev)" ]; then \
-		echo "Error: Local dev is not up-to-date with origin/dev"; exit 1; \
 	fi
 	@command -v gh >/dev/null 2>&1 || { echo "Error: gh CLI not installed"; exit 1; }
 	@gh auth status >/dev/null 2>&1 || { echo "Error: gh CLI not authenticated. Run 'gh auth login'"; exit 1; }
 	@command -v rclone >/dev/null 2>&1 || { echo "Error: rclone not installed"; exit 1; }
+	@current_branch="$$(git rev-parse --abbrev-ref HEAD)"; \
+	current_commit="$$(git rev-parse HEAD)"; \
+	current_short="$$(git rev-parse --short HEAD)"; \
+	current_subject="$$(git log -1 --pretty=%s)"; \
+	current_version="$$(cat VERSION 2>/dev/null || echo unknown)"; \
+	git fetch origin dev; \
+	origin_commit="$$(git rev-parse origin/dev)"; \
+	origin_short="$$(git rev-parse --short origin/dev)"; \
+	if [ "$$current_branch" = "dev" ] && [ "$$current_commit" = "$$origin_commit" ]; then \
+		exit 0; \
+	fi; \
+	echo ""; \
+	echo "WARNING: Releasing from the current checkout instead of latest origin/dev"; \
+	echo "  Ref:     $$current_branch"; \
+	echo "  Commit:  $$current_short"; \
+	echo "  Subject: $$current_subject"; \
+	echo "  Version: $$current_version"; \
+	echo "  origin/dev: $$origin_short"; \
+	echo ""; \
+	read -p "Continue with this checkout? [y/N] " confirm; \
+	[ "$$confirm" = "y" ] || exit 1
 
 # -----------------------------------------------------------------------------
 # Build / Flash / Test (dependency chain)
@@ -48,8 +62,8 @@ check_device:
 
 check_remote:
 	@echo "Checking remote host connectivity ($(JETKVM_REMOTE_HOST))..."
-	@ping -c 1 -W 5 $(JETKVM_REMOTE_HOST) > /dev/null 2>&1 || { echo "Error: Cannot reach remote host at $(JETKVM_REMOTE_HOST)"; exit 1; }
-	@ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o ConnectTimeout=10 root@$(JETKVM_REMOTE_HOST) "echo ok" > /dev/null 2>&1 || { echo "Error: SSH failed to root@$(JETKVM_REMOTE_HOST)"; exit 1; }
+	@ping -c 1 -W 5 $(shell echo $(JETKVM_REMOTE_HOST) | sed 's/.*@//') > /dev/null 2>&1 || { echo "Error: Cannot reach remote host at $(JETKVM_REMOTE_HOST)"; exit 1; }
+	@ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o ConnectTimeout=10 $(JETKVM_REMOTE_HOST) "echo ok" > /dev/null 2>&1 || { echo "Error: SSH failed to $(JETKVM_REMOTE_HOST)"; exit 1; }
 	@echo "OK: Remote host reachable"
 
 flash:
@@ -87,6 +101,7 @@ dev_release: git_check_dev test
 	@echo "  Tag:     release/v$(VERSION_DEV)"
 	@echo "  Branch:  $$(git rev-parse --abbrev-ref HEAD)"
 	@echo "  Commit:  $$(git rev-parse --short HEAD)"
+	@echo "  Subject: $$(git log -1 --pretty=%s)"
 	@echo "  Time:    $$(date -u +%FT%T%z)"
 	@echo "═══════════════════════════════════════════════════════"
 	@echo ""
@@ -124,6 +139,7 @@ release: git_check_dev test
 	@echo "  Tag:     release/v$(VERSION)"
 	@echo "  Branch:  $$(git rev-parse --abbrev-ref HEAD)"
 	@echo "  Commit:  $$(git rev-parse --short HEAD)"
+	@echo "  Subject: $$(git log -1 --pretty=%s)"
 	@echo "  Time:    $$(date -u +%FT%T%z)"
 	@echo "═══════════════════════════════════════════════════════"
 	@echo ""
